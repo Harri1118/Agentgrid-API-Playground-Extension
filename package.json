@@ -1,0 +1,52 @@
+{
+  "name": "agentgrid-api-playground",
+  "displayName": "API Playground",
+  "version": "1.0.0",
+  "description": "Postman-like HTTP request builder as a canvas pane — compose requests, inspect responses, and manage environments.",
+  "publisher": "agentgrid",
+  "main": "dist/extension.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Harri1118/Agentgrid-API-Playground-Extension"
+  },
+  "categories": [
+    "Developer Tools",
+    "API"
+  ],
+  "engines": {
+    "agentgrid": ">=2.8.0"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "ui": {
+      "customPaneTypes": [
+        {
+          "type": "ext-api-playground",
+          "label": "API Playground",
+          "icon": "🔌",
+          "entrypoint": "panels/playground.html",
+          "defaultWidth": 700,
+          "defaultHeight": 600
+        }
+      ],
+      "spawnMenuItems": [
+        {
+          "id": "open-api-playground",
+          "label": "API Playground",
+          "icon": "🔌",
+          "category": "tools"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}
