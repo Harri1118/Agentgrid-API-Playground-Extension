@@ -31,14 +31,6 @@
           "defaultWidth": 700,
           "defaultHeight": 600
         }
-      ],
-      "spawnMenuItems": [
-        {
-          "id": "open-api-playground",
-          "label": "API Playground",
-          "icon": "🔌",
-          "category": "tools"
-        }
       ]
     }
   },
