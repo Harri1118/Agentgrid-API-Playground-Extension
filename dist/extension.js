@@ -23,8 +23,12 @@ __export(extension_exports, {
   deactivate: () => deactivate
 });
 module.exports = __toCommonJS(extension_exports);
+var COLLECTIONS_KEY = "api-playground:collections";
+var HISTORY_KEY = "api-playground:history";
+var MAX_HISTORY = 100;
 function activate(context) {
   const api = context.agentgrid;
+  const state = context.workspaceState;
   const httpRequestCmd = api.commands.registerCommand(
     "api-playground.httpRequest",
     async (...args) => {
@@ -69,6 +73,67 @@ function activate(context) {
         });
         return { error: msg };
       }
+    }
+  );
+  const getCollectionsCmd = api.commands.registerCommand(
+    "api-playground.getCollections",
+    () => {
+      return state.get(COLLECTIONS_KEY, []) ?? [];
+    }
+  );
+  const saveCollectionCmd = api.commands.registerCommand(
+    "api-playground.saveCollection",
+    (...args) => {
+      const entry = args[0];
+      if (!entry?.name || !entry?.url) {
+        return { error: "Missing name or url" };
+      }
+      const collections = state.get(COLLECTIONS_KEY, []) ?? [];
+      const existingIndex = collections.findIndex((c) => c.id === entry.id);
+      if (existingIndex >= 0) {
+        collections[existingIndex] = entry;
+      } else {
+        entry.id = entry.id || `req-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        entry.createdAt = entry.createdAt || Date.now();
+        collections.unshift(entry);
+      }
+      state.update(COLLECTIONS_KEY, collections);
+      return { ok: true, collections };
+    }
+  );
+  const deleteCollectionCmd = api.commands.registerCommand(
+    "api-playground.deleteCollection",
+    (...args) => {
+      const id = args[0];
+      if (!id) {
+        return { error: "Missing id" };
+      }
+      const collections = (state.get(COLLECTIONS_KEY, []) ?? []).filter((c) => c.id !== id);
+      state.update(COLLECTIONS_KEY, collections);
+      return { ok: true, collections };
+    }
+  );
+  const getHistoryCmd = api.commands.registerCommand(
+    "api-playground.getHistory",
+    () => {
+      return state.get(HISTORY_KEY, []) ?? [];
+    }
+  );
+  const pushHistoryCmd = api.commands.registerCommand(
+    "api-playground.pushHistory",
+    (...args) => {
+      const entry = args[0];
+      if (!entry) {
+        return { error: "Missing entry" };
+      }
+      const history = state.get(HISTORY_KEY, []) ?? [];
+      entry.ts = Date.now();
+      history.unshift(entry);
+      if (history.length > MAX_HISTORY) {
+        history.length = MAX_HISTORY;
+      }
+      state.update(HISTORY_KEY, history);
+      return { ok: true };
     }
   );
   const executeHttpRequest = async (input) => {
@@ -147,7 +212,16 @@ function activate(context) {
       return api.activity.list(since);
     }
   );
-  context.subscriptions.push(httpRequestCmd, httpRequestTool, activityTool);
+  context.subscriptions.push(
+    httpRequestCmd,
+    getCollectionsCmd,
+    saveCollectionCmd,
+    deleteCollectionCmd,
+    getHistoryCmd,
+    pushHistoryCmd,
+    httpRequestTool,
+    activityTool
+  );
   console.log("[api-playground] extension activated");
 }
 function deactivate() {

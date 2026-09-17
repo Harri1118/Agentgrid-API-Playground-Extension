@@ -28,8 +28,8 @@
           "label": "API Playground",
           "icon": "🔌",
           "entrypoint": "panels/playground.html",
-          "defaultWidth": 700,
-          "defaultHeight": 600
+          "defaultWidth": 960,
+          "defaultHeight": 780
         }
       ]
     }

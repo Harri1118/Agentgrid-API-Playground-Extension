@@ -9,6 +9,7 @@
     --bg: #1a1a2e;
     --bg-raised: #22223a;
     --bg-input: #16162a;
+    --bg-sidebar: #161630;
     --border: #2a2a48;
     --border-focus: #6366f1;
     --text: #e0e0e0;
@@ -23,6 +24,7 @@
     --radius-sm: 4px;
     --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace;
+    --sidebar-w: 220px;
   }
 
   body {
@@ -33,8 +35,217 @@
     overflow: hidden;
     height: 100vh;
     display: flex;
-    flex-direction: column;
   }
+
+  /* ── Sidebar ── */
+
+  .sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.12s, border-color 0.12s;
+  }
+
+  .sidebar-tab:hover { color: var(--text); }
+  .sidebar-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .sidebar-panel { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .sidebar-panel.active { display: flex; }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-header-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+  }
+
+  .sidebar-action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 2px 8px;
+    font-size: 11px;
+    transition: border-color 0.12s, color 0.12s;
+  }
+
+  .sidebar-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sidebar-list { display: flex; flex-direction: column; gap: 1px; padding: 0 4px 8px; }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: none;
+    background: none;
+    text-align: left;
+    width: 100%;
+    transition: background 0.12s;
+    position: relative;
+  }
+
+  .sidebar-item:hover { background: rgba(255, 255, 255, 0.04); }
+  .sidebar-item.active { background: rgba(99, 102, 241, 0.12); }
+
+  .sidebar-item-method {
+    font-weight: 700;
+    font-size: 9px;
+    text-transform: uppercase;
+    min-width: 32px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-item-label {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-item-status {
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .sidebar-item-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .sidebar-item-actions {
+    display: none;
+    flex-shrink: 0;
+    gap: 2px;
+  }
+
+  .sidebar-item:hover .sidebar-item-actions { display: flex; }
+  .sidebar-item:hover .sidebar-item-time { display: none; }
+
+  .sidebar-item-action {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 0 3px;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .sidebar-item-action:hover { color: var(--red); }
+
+  .sidebar-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* ── Save modal ── */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .modal {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-title { font-size: 14px; font-weight: 600; }
+
+  .modal-input {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--font);
+    outline: none;
+  }
+
+  .modal-input:focus { border-color: var(--border-focus); }
+
+  .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .modal-btn {
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font);
+  }
+
+  .modal-btn:hover { border-color: var(--text-dim); }
+
+  .modal-btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .modal-btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+  /* ── Main area ── */
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
   .toolbar {
     display: flex;
@@ -90,6 +301,20 @@
 
   .send-btn:hover { background: var(--accent-hover); }
   .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .save-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 12px;
+    white-space: nowrap;
+    transition: border-color 0.12s, color 0.12s;
+  }
+
+  .save-btn:hover { border-color: var(--accent); color: var(--accent); }
 
   .content {
     flex: 1;
@@ -240,40 +465,6 @@
     font-size: 13px;
   }
 
-  .history-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
-
-  .history-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    border: none;
-    background: none;
-    text-align: left;
-    width: 100%;
-    transition: background 0.12s;
-  }
-
-  .history-item:hover { background: rgba(255, 255, 255, 0.04); }
-
-  .history-method { font-weight: 700; font-size: 10px; text-transform: uppercase; min-width: 42px; }
-
-  .history-url {
-    flex: 1;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .history-status { font-size: 11px; font-weight: 600; }
-
-  .history-empty { padding: 24px; text-align: center; color: var(--text-dim); font-size: 12px; }
-
   .splitter {
     height: 3px;
     background: var(--border);
@@ -287,75 +478,98 @@
 </head>
 <body>
 
-<div class="toolbar">
-  <select id="method" class="method-select">
-    <option value="GET">GET</option>
-    <option value="POST">POST</option>
-    <option value="PUT">PUT</option>
-    <option value="PATCH">PATCH</option>
-    <option value="DELETE">DELETE</option>
-    <option value="HEAD">HEAD</option>
-    <option value="OPTIONS">OPTIONS</option>
-  </select>
-  <input id="url" class="url-input" type="text" placeholder="https://api.example.com/endpoint" spellcheck="false" />
-  <button id="send" class="send-btn">Send</button>
-</div>
-
-<div class="content">
-  <div class="tabs" id="request-tabs">
-    <button class="tab active" data-panel="params">Params</button>
-    <button class="tab" data-panel="headers">Headers</button>
-    <button class="tab" data-panel="body">Body</button>
-    <button class="tab" data-panel="history">History</button>
+<div class="sidebar">
+  <div class="sidebar-tabs">
+    <button class="sidebar-tab active" data-panel="collections">Collections</button>
+    <button class="sidebar-tab" data-panel="history">History</button>
   </div>
 
-  <div class="tab-panels" id="request-panels">
-    <div class="tab-panel active" data-panel="params">
-      <div class="kv-editor" id="params-editor"></div>
+  <div class="sidebar-panel active" data-panel="collections">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Saved Requests</span>
+      <button class="sidebar-action-btn" id="save-current-btn">+ Save</button>
     </div>
-    <div class="tab-panel" data-panel="headers">
-      <div class="kv-editor" id="headers-editor"></div>
-    </div>
-    <div class="tab-panel" data-panel="body">
-      <div class="body-editor">
-        <div class="body-type-row">
-          <label><input type="radio" name="body-type" value="none" checked /> None</label>
-          <label><input type="radio" name="body-type" value="json" /> JSON</label>
-          <label><input type="radio" name="body-type" value="text" /> Text</label>
-          <label><input type="radio" name="body-type" value="form" /> Form</label>
-        </div>
-        <textarea id="body-content" class="body-textarea" placeholder="Request body..." disabled></textarea>
-      </div>
-    </div>
-    <div class="tab-panel" data-panel="history">
-      <div class="history-list" id="history-list"></div>
-    </div>
+    <div class="sidebar-list" id="collections-list"></div>
   </div>
 
-  <div class="splitter" id="splitter"></div>
-
-  <div class="response-section" id="response-section">
-    <div class="response-empty" id="response-empty">Send a request to see the response</div>
-    <div id="response-content" style="display:none">
-      <div class="response-bar">
-        <span class="status-badge" id="res-status"></span>
-        <span class="response-meta" id="res-meta"></span>
-      </div>
-      <div class="tabs" id="response-tabs">
-        <button class="tab active" data-panel="res-body">Body</button>
-        <button class="tab" data-panel="res-headers">Headers</button>
-      </div>
-      <div class="tab-panels">
-        <div class="tab-panel active" data-panel="res-body">
-          <div class="response-body"><pre id="res-body-pre"></pre></div>
-        </div>
-        <div class="tab-panel" data-panel="res-headers">
-          <div class="response-body"><pre id="res-headers-pre"></pre></div>
-        </div>
-      </div>
+  <div class="sidebar-panel" data-panel="history">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Recent</span>
+      <button class="sidebar-action-btn" id="clear-history-btn">Clear</button>
     </div>
+    <div class="sidebar-list" id="history-list"></div>
   </div>
 </div>
+
+<div class="main">
+  <div class="toolbar">
+    <select id="method" class="method-select">
+      <option value="GET">GET</option>
+      <option value="POST">POST</option>
+      <option value="PUT">PUT</option>
+      <option value="PATCH">PATCH</option>
+      <option value="DELETE">DELETE</option>
+      <option value="HEAD">HEAD</option>
+      <option value="OPTIONS">OPTIONS</option>
+    </select>
+    <input id="url" class="url-input" type="text" placeholder="https://api.example.com/endpoint" spellcheck="false" />
+    <button id="send" class="send-btn">Send</button>
+  </div>
+
+  <div class="content">
+    <div class="tabs" id="request-tabs">
+      <button class="tab active" data-panel="params">Params</button>
+      <button class="tab" data-panel="headers">Headers</button>
+      <button class="tab" data-panel="body">Body</button>
+    </div>
+
+    <div class="tab-panels" id="request-panels">
+      <div class="tab-panel active" data-panel="params">
+        <div class="kv-editor" id="params-editor"></div>
+      </div>
+      <div class="tab-panel" data-panel="headers">
+        <div class="kv-editor" id="headers-editor"></div>
+      </div>
+      <div class="tab-panel" data-panel="body">
+        <div class="body-editor">
+          <div class="body-type-row">
+            <label><input type="radio" name="body-type" value="none" checked /> None</label>
+            <label><input type="radio" name="body-type" value="json" /> JSON</label>
+            <label><input type="radio" name="body-type" value="text" /> Text</label>
+            <label><input type="radio" name="body-type" value="form" /> Form</label>
+          </div>
+          <textarea id="body-content" class="body-textarea" placeholder="Request body..." disabled></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="splitter" id="splitter"></div>
+
+    <div class="response-section" id="response-section">
+      <div class="response-empty" id="response-empty">Send a request to see the response</div>
+      <div id="response-content" style="display:none">
+        <div class="response-bar">
+          <span class="status-badge" id="res-status"></span>
+          <span class="response-meta" id="res-meta"></span>
+        </div>
+        <div class="tabs" id="response-tabs">
+          <button class="tab active" data-panel="res-body">Body</button>
+          <button class="tab" data-panel="res-headers">Headers</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" data-panel="res-body">
+            <div class="response-body"><pre id="res-body-pre"></pre></div>
+          </div>
+          <div class="tab-panel" data-panel="res-headers">
+            <div class="response-body"><pre id="res-headers-pre"></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-container"></div>
 
 <script>
 (function () {
@@ -374,12 +588,31 @@
   var resMeta = document.getElementById('res-meta')
   var resBodyPre = document.getElementById('res-body-pre')
   var resHeadersPre = document.getElementById('res-headers-pre')
-  var historyList = document.getElementById('history-list')
+  var collectionsListEl = document.getElementById('collections-list')
+  var historyListEl = document.getElementById('history-list')
+  var modalContainer = document.getElementById('modal-container')
 
   var params = [{ key: '', value: '' }]
   var headers = [{ key: 'Content-Type', value: 'application/json' }]
   var history = []
+  var collections = []
   var bodyType = 'none'
+
+  /* ── Sidebar tabs ── */
+
+  var sidebarTabs = document.querySelectorAll('.sidebar-tab')
+  var sidebarPanels = document.querySelectorAll('.sidebar-panel')
+
+  sidebarTabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var panelName = tab.dataset.panel
+
+      sidebarTabs.forEach(function (t) { t.classList.toggle('active', t === tab) })
+      sidebarPanels.forEach(function (p) { p.classList.toggle('active', p.dataset.panel === panelName) })
+    })
+  })
+
+  /* ── Tabs ── */
 
   function setupTabs(container) {
     var tabs = container.querySelectorAll('.tab')
@@ -404,6 +637,40 @@
 
   setupTabs(document.getElementById('request-tabs'))
   setupTabs(document.getElementById('response-tabs'))
+
+  /* ── Bridge ── */
+
+  var pending = {}
+  var callId = 0
+
+  function bridge(method, args) {
+    var id = 'c' + (++callId)
+
+    window.parent.postMessage({
+      type: 'agentgrid-extension-call',
+      id: id,
+      method: method,
+      args: args || []
+    }, '*')
+
+    return new Promise(function (resolve) { pending[id] = resolve })
+  }
+
+  window.addEventListener('message', function (e) {
+    var d = e.data
+
+    if (d && d.type === 'agentgrid-extension-response' && d.id && pending[d.id]) {
+      pending[d.id](d.result)
+      delete pending[d.id]
+    }
+
+    if (d && d.type === 'ext-pane:broadcast' && d.event && d.event.type === 'response') {
+      showResponse(d.event)
+      persistHistory(d.event.method || '?', d.event.url || '?', d.event.status)
+    }
+  })
+
+  /* ── KV Editor ── */
 
   function clearChildren(el) {
     while (el.firstChild) { el.removeChild(el.firstChild) }
@@ -466,17 +733,7 @@
   renderKvEditor('params-editor', params)
   renderKvEditor('headers-editor', headers)
 
-  function renderHistoryEmpty() {
-    clearChildren(historyList)
-
-    var empty = document.createElement('div')
-
-    empty.className = 'history-empty'
-    empty.textContent = 'No requests yet'
-    historyList.appendChild(empty)
-  }
-
-  renderHistoryEmpty()
+  /* ── Body type ── */
 
   document.querySelectorAll('input[name="body-type"]').forEach(function (radio) {
     radio.addEventListener('change', function () {
@@ -494,6 +751,8 @@
   })
 
   methodEl.style.color = METHOD_COLORS[methodEl.value] || '#e0e0e0'
+
+  /* ── Request building ── */
 
   function buildUrl() {
     var base = urlEl.value.trim()
@@ -521,6 +780,8 @@
 
     return h
   }
+
+  /* ── Response ── */
 
   function statusClass(code) {
     if (code >= 200 && code < 300) { return 'status-2xx' }
@@ -590,19 +851,29 @@
     resHeadersPre.textContent = ''
   }
 
-  function addHistory(method, url, status) {
-    history.unshift({ method: method, url: url, status: status })
+  /* ── History (persistent) ── */
 
-    if (history.length > 50) { history.pop() }
+  function persistHistory(method, url, status, time) {
+    history.unshift({ method: method, url: url, status: status, time: time || 0 })
+
+    if (history.length > 100) { history.pop() }
 
     renderHistory()
+
+    bridge('executeCommand', ['api-playground.pushHistory', {
+      method: method, url: url, status: status, time: time || 0
+    }])
   }
 
   function renderHistory() {
-    clearChildren(historyList)
+    clearChildren(historyListEl)
 
     if (history.length === 0) {
-      renderHistoryEmpty()
+      var empty = document.createElement('div')
+
+      empty.className = 'sidebar-empty'
+      empty.textContent = 'No requests yet.\nSend a request to start building history.'
+      historyListEl.appendChild(empty)
 
       return
     }
@@ -610,22 +881,31 @@
     history.forEach(function (entry) {
       var btn = document.createElement('button')
 
-      btn.className = 'history-item'
+      btn.className = 'sidebar-item'
 
       var methodSpan = document.createElement('span')
 
-      methodSpan.className = 'history-method'
+      methodSpan.className = 'sidebar-item-method'
       methodSpan.textContent = entry.method
       methodSpan.style.color = METHOD_COLORS[entry.method] || '#888'
 
       var urlSpan = document.createElement('span')
 
-      urlSpan.className = 'history-url'
-      urlSpan.textContent = entry.url
+      urlSpan.className = 'sidebar-item-label'
+
+      try {
+        var parsed = new URL(entry.url)
+
+        urlSpan.textContent = parsed.pathname + parsed.search
+      } catch (_) {
+        urlSpan.textContent = entry.url
+      }
+
+      urlSpan.title = entry.url
 
       var statusSpan = document.createElement('span')
 
-      statusSpan.className = 'history-status'
+      statusSpan.className = 'sidebar-item-status'
       statusSpan.textContent = entry.status || ''
 
       var statusColor = '#22c55e'
@@ -641,44 +921,250 @@
       btn.appendChild(statusSpan)
 
       btn.addEventListener('click', function () {
-        methodEl.value = entry.method
-        methodEl.style.color = METHOD_COLORS[entry.method] || '#e0e0e0'
-        urlEl.value = entry.url
+        loadRequest(entry.method, entry.url)
       })
 
-      historyList.appendChild(btn)
+      historyListEl.appendChild(btn)
     })
   }
 
-  var pending = {}
-  var callId = 0
-
-  function bridge(method, args) {
-    var id = 'c' + (++callId)
-
-    window.parent.postMessage({
-      type: 'agentgrid-extension-call',
-      id: id,
-      method: method,
-      args: args || []
-    }, '*')
-
-    return new Promise(function (resolve) { pending[id] = resolve })
+  function loadPersistedHistory() {
+    bridge('executeCommand', ['api-playground.getHistory']).then(function (result) {
+      if (Array.isArray(result)) {
+        history = result
+        renderHistory()
+      }
+    })
   }
 
-  window.addEventListener('message', function (e) {
-    var d = e.data
-
-    if (d && d.type === 'agentgrid-extension-response' && d.id && pending[d.id]) {
-      pending[d.id](d.result)
-      delete pending[d.id]
-    }
-
-    if (d && d.type === 'ext-pane:broadcast' && d.event && d.event.type === 'response') {
-      showResponse(d.event)
-      addHistory(d.event.method || '?', d.event.url || '?', d.event.status)
-    }
+  document.getElementById('clear-history-btn').addEventListener('click', function () {
+    history = []
+    renderHistory()
   })
+
+  /* ── Collections (persistent) ── */
+
+  function renderCollections() {
+    clearChildren(collectionsListEl)
+
+    if (collections.length === 0) {
+      var empty = document.createElement('div')
+
+      empty.className = 'sidebar-empty'
+      empty.textContent = 'No saved requests yet.\nClick "+ Save" to save the current request.'
+      collectionsListEl.appendChild(empty)
+
+      return
+    }
+
+    collections.forEach(function (entry) {
+      var btn = document.createElement('button')
+
+      btn.className = 'sidebar-item'
+
+      var methodSpan = document.createElement('span')
+
+      methodSpan.className = 'sidebar-item-method'
+      methodSpan.textContent = entry.method
+      methodSpan.style.color = METHOD_COLORS[entry.method] || '#888'
+
+      var nameSpan = document.createElement('span')
+
+      nameSpan.className = 'sidebar-item-label'
+      nameSpan.textContent = entry.name
+      nameSpan.title = entry.url
+
+      var actionsSpan = document.createElement('span')
+
+      actionsSpan.className = 'sidebar-item-actions'
+
+      var deleteBtn = document.createElement('button')
+
+      deleteBtn.className = 'sidebar-item-action'
+      deleteBtn.textContent = '\u2715'
+      deleteBtn.title = 'Delete'
+      deleteBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation()
+        deleteCollection(entry.id)
+      })
+
+      actionsSpan.appendChild(deleteBtn)
+
+      btn.appendChild(methodSpan)
+      btn.appendChild(nameSpan)
+      btn.appendChild(actionsSpan)
+
+      btn.addEventListener('click', function () {
+        loadSavedRequest(entry)
+      })
+
+      collectionsListEl.appendChild(btn)
+    })
+  }
+
+  function loadSavedRequest(entry) {
+    methodEl.value = entry.method || 'GET'
+    methodEl.style.color = METHOD_COLORS[methodEl.value] || '#e0e0e0'
+    urlEl.value = entry.url || ''
+
+    if (entry.headers && entry.headers.length) {
+      headers = entry.headers.map(function (h) { return { key: h.key, value: h.value } })
+    } else {
+      headers = [{ key: 'Content-Type', value: 'application/json' }]
+    }
+
+    renderKvEditor('headers-editor', headers)
+
+    params = [{ key: '', value: '' }]
+    renderKvEditor('params-editor', params)
+
+    bodyType = entry.bodyType || 'none'
+    bodyContent.value = entry.body || ''
+    bodyContent.disabled = bodyType === 'none'
+
+    document.querySelectorAll('input[name="body-type"]').forEach(function (radio) {
+      radio.checked = radio.value === bodyType
+    })
+  }
+
+  function loadRequest(method, url) {
+    methodEl.value = method
+    methodEl.style.color = METHOD_COLORS[method] || '#e0e0e0'
+    urlEl.value = url
+  }
+
+  function showSaveModal() {
+    var currentUrl = urlEl.value.trim()
+
+    if (!currentUrl) {
+      urlEl.focus()
+
+      return
+    }
+
+    var overlay = document.createElement('div')
+
+    overlay.className = 'modal-overlay'
+
+    var modal = document.createElement('div')
+
+    modal.className = 'modal'
+
+    var title = document.createElement('div')
+
+    title.className = 'modal-title'
+    title.textContent = 'Save Request'
+
+    var nameInput = document.createElement('input')
+
+    nameInput.className = 'modal-input'
+    nameInput.type = 'text'
+    nameInput.placeholder = 'Request name...'
+
+    try {
+      var parsed = new URL(currentUrl.indexOf('://') === -1 ? 'https://' + currentUrl : currentUrl)
+
+      nameInput.value = methodEl.value + ' ' + parsed.pathname
+    } catch (_) {
+      nameInput.value = methodEl.value + ' ' + currentUrl.slice(0, 40)
+    }
+
+    var buttons = document.createElement('div')
+
+    buttons.className = 'modal-buttons'
+
+    var cancelBtn = document.createElement('button')
+
+    cancelBtn.className = 'modal-btn'
+    cancelBtn.textContent = 'Cancel'
+
+    var saveBtn = document.createElement('button')
+
+    saveBtn.className = 'modal-btn modal-btn-primary'
+    saveBtn.textContent = 'Save'
+
+    buttons.appendChild(cancelBtn)
+    buttons.appendChild(saveBtn)
+    modal.appendChild(title)
+    modal.appendChild(nameInput)
+    modal.appendChild(buttons)
+    overlay.appendChild(modal)
+    modalContainer.appendChild(overlay)
+
+    nameInput.focus()
+    nameInput.select()
+
+    function close() {
+      modalContainer.removeChild(overlay)
+    }
+
+    cancelBtn.addEventListener('click', close)
+
+    overlay.addEventListener('click', function (ev) {
+      if (ev.target === overlay) { close() }
+    })
+
+    function doSave() {
+      var name = nameInput.value.trim()
+
+      if (!name) { return }
+
+      var entry = {
+        id: 'req-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        name: name,
+        method: methodEl.value,
+        url: currentUrl,
+        headers: headers.filter(function (h) { return h.key.trim() }),
+        bodyType: bodyType,
+        body: bodyContent.value,
+        createdAt: Date.now()
+      }
+
+      bridge('executeCommand', ['api-playground.saveCollection', entry]).then(function (result) {
+        if (result && result.collections) {
+          collections = result.collections
+        } else {
+          collections.unshift(entry)
+        }
+
+        renderCollections()
+      })
+
+      close()
+    }
+
+    saveBtn.addEventListener('click', doSave)
+
+    nameInput.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { doSave() }
+      if (ev.key === 'Escape') { close() }
+    })
+  }
+
+  function deleteCollection(id) {
+    bridge('executeCommand', ['api-playground.deleteCollection', id]).then(function (result) {
+      if (result && result.collections) {
+        collections = result.collections
+      } else {
+        collections = collections.filter(function (c) { return c.id !== id })
+      }
+
+      renderCollections()
+    })
+  }
+
+  function loadPersistedCollections() {
+    bridge('executeCommand', ['api-playground.getCollections']).then(function (result) {
+      if (Array.isArray(result)) {
+        collections = result
+        renderCollections()
+      }
+    })
+  }
+
+  document.getElementById('save-current-btn').addEventListener('click', showSaveModal)
+
+  /* ── Send request ── */
 
   function sendRequest() {
     var method = methodEl.value
@@ -706,14 +1192,16 @@
 
       if (!result || result.error) {
         showError(result ? result.error : 'No response')
-        addHistory(method, url, 'ERR')
+        persistHistory(method, url, 'ERR')
 
         return
       }
 
-      result.time = Date.now() - startTime
+      var elapsed = Date.now() - startTime
+
+      result.time = elapsed
       showResponse(result)
-      addHistory(method, url, result.status)
+      persistHistory(method, url, result.status, elapsed)
     }).catch(function () {
       sendBtn.disabled = false
       sendBtn.textContent = 'Send'
@@ -726,6 +1214,8 @@
   urlEl.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { sendRequest() }
   })
+
+  /* ── Splitter ── */
 
   var splitter = document.getElementById('splitter')
   var isDragging = false
@@ -750,6 +1240,13 @@
   })
 
   document.addEventListener('mouseup', function () { isDragging = false })
+
+  /* ── Init: load persisted data ── */
+
+  loadPersistedCollections()
+  loadPersistedHistory()
+  renderCollections()
+  renderHistory()
 })()
 </script>
 </body>

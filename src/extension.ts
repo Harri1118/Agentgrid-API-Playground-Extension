@@ -69,8 +69,32 @@ type ExtensionContext = {
   agentgrid: AgentGridApi
 }
 
+type SavedRequest = {
+  id: string
+  name: string
+  method: string
+  url: string
+  headers: Array<{ key: string; value: string }>
+  bodyType: string
+  body: string
+  createdAt: number
+}
+
+type HistoryEntry = {
+  method: string
+  url: string
+  status: number | string
+  time: number
+  ts: number
+}
+
+const COLLECTIONS_KEY = 'api-playground:collections'
+const HISTORY_KEY = 'api-playground:history'
+const MAX_HISTORY = 100
+
 export function activate(context: ExtensionContext): void {
   const api = context.agentgrid
+  const state = context.workspaceState
 
   const httpRequestCmd = api.commands.registerCommand(
     'api-playground.httpRequest',
@@ -125,6 +149,81 @@ export function activate(context: ExtensionContext): void {
 
         return { error: msg }
       }
+    },
+  )
+
+  const getCollectionsCmd = api.commands.registerCommand(
+    'api-playground.getCollections',
+    () => {
+      return state.get<SavedRequest[]>(COLLECTIONS_KEY, []) ?? []
+    },
+  )
+
+  const saveCollectionCmd = api.commands.registerCommand(
+    'api-playground.saveCollection',
+    (...args: unknown[]) => {
+      const entry = args[0] as SavedRequest | undefined
+
+      if (!entry?.name || !entry?.url) {
+        return { error: 'Missing name or url' }
+      }
+
+      const collections = state.get<SavedRequest[]>(COLLECTIONS_KEY, []) ?? []
+      const existingIndex = collections.findIndex((c) => c.id === entry.id)
+
+      if (existingIndex >= 0) {
+        collections[existingIndex] = entry
+      } else {
+        entry.id = entry.id || `req-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        entry.createdAt = entry.createdAt || Date.now()
+        collections.unshift(entry)
+      }
+
+      state.update(COLLECTIONS_KEY, collections)
+
+      return { ok: true, collections }
+    },
+  )
+
+  const deleteCollectionCmd = api.commands.registerCommand(
+    'api-playground.deleteCollection',
+    (...args: unknown[]) => {
+      const id = args[0] as string | undefined
+
+      if (!id) { return { error: 'Missing id' } }
+
+      const collections = (state.get<SavedRequest[]>(COLLECTIONS_KEY, []) ?? []).filter((c) => c.id !== id)
+
+      state.update(COLLECTIONS_KEY, collections)
+
+      return { ok: true, collections }
+    },
+  )
+
+  const getHistoryCmd = api.commands.registerCommand(
+    'api-playground.getHistory',
+    () => {
+      return state.get<HistoryEntry[]>(HISTORY_KEY, []) ?? []
+    },
+  )
+
+  const pushHistoryCmd = api.commands.registerCommand(
+    'api-playground.pushHistory',
+    (...args: unknown[]) => {
+      const entry = args[0] as HistoryEntry | undefined
+
+      if (!entry) { return { error: 'Missing entry' } }
+
+      const history = state.get<HistoryEntry[]>(HISTORY_KEY, []) ?? []
+
+      entry.ts = Date.now()
+      history.unshift(entry)
+
+      if (history.length > MAX_HISTORY) { history.length = MAX_HISTORY }
+
+      state.update(HISTORY_KEY, history)
+
+      return { ok: true }
     },
   )
 
@@ -216,7 +315,11 @@ export function activate(context: ExtensionContext): void {
     },
   )
 
-  context.subscriptions.push(httpRequestCmd, httpRequestTool, activityTool)
+  context.subscriptions.push(
+    httpRequestCmd, getCollectionsCmd, saveCollectionCmd,
+    deleteCollectionCmd, getHistoryCmd, pushHistoryCmd,
+    httpRequestTool, activityTool,
+  )
 
   console.log('[api-playground] extension activated')
 }
