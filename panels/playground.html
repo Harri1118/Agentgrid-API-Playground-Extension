@@ -673,6 +673,11 @@
       pending[d.id](d.result)
       delete pending[d.id]
     }
+
+    if (d && d.type === 'ext-pane:broadcast' && d.event && d.event.type === 'response') {
+      showResponse(d.event)
+      addHistory(d.event.method || '?', d.event.url || '?', d.event.status)
+    }
   })
 
   function sendRequest() {
