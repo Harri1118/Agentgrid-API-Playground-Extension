@@ -22,14 +22,13 @@
   ],
   "contributes": {
     "ui": {
-      "customPaneTypes": [
+      "paneTypes": [
         {
-          "type": "ext-api-playground",
-          "label": "API Playground",
+          "id": "api-playground",
+          "title": "API Playground",
           "icon": "🔌",
           "entrypoint": "panels/playground.html",
-          "defaultWidth": 960,
-          "defaultHeight": 780
+          "defaultSize": { "width": 960, "height": 780 }
         }
       ]
     }
