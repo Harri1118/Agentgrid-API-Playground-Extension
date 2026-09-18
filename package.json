@@ -17,6 +17,9 @@
   "engines": {
     "agentgrid": ">=2.8.0"
   },
+  "permissions": [
+    "ui:panel"
+  ],
   "activationEvents": [
     "*"
   ],
