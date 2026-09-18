@@ -286,9 +286,11 @@
 
     renderHistory()
 
-    bridge('executeCommand', ['api-playground.pushHistory', {
-      method: method, url: url, status: status, time: time || 0
-    }])
+    try {
+      bridge('executeCommand', ['api-playground.pushHistory', {
+        method: method, url: url, status: status, time: time || 0
+      }]).catch(function () {})
+    } catch (_) {}
   }
 
   function renderHistory() {
@@ -607,31 +609,39 @@
     var reqHeaders = buildHeaders()
     var reqBody = bodyType === 'none' ? undefined : bodyContent.value
 
-    bridge('executeCommand', ['api-playground.httpRequest', {
-      method: method,
-      url: url,
-      headers: reqHeaders,
-      body: reqBody
-    }]).then(function (result) {
+    var fetchOpts = { method: method, headers: reqHeaders }
+    if (reqBody && method !== 'GET' && method !== 'HEAD') {
+      fetchOpts.body = reqBody
+    }
+
+    fetch(url, fetchOpts).then(function (resp) {
+      var status = resp.status
+      var statusText = resp.statusText
+      var respHeaders = {}
+      resp.headers.forEach(function (v, k) { respHeaders[k] = v })
+
+      return resp.text().then(function (bodyText) {
+        var elapsed = Date.now() - startTime
+
+        sendBtn.disabled = false
+        sendBtn.textContent = 'Send'
+
+        var result = {
+          status: status,
+          statusText: statusText,
+          headers: respHeaders,
+          body: bodyText,
+          size: bodyText.length,
+          time: elapsed,
+        }
+        showResponse(result)
+        persistHistory(method, url, status, elapsed)
+      })
+    }).catch(function (err) {
       sendBtn.disabled = false
       sendBtn.textContent = 'Send'
-
-      if (!result || result.error) {
-        showError(result ? result.error : 'No response')
-        persistHistory(method, url, 'ERR')
-
-        return
-      }
-
-      var elapsed = Date.now() - startTime
-
-      result.time = elapsed
-      showResponse(result)
-      persistHistory(method, url, result.status, elapsed)
-    }).catch(function () {
-      sendBtn.disabled = false
-      sendBtn.textContent = 'Send'
-      showError('Bridge communication failed')
+      showError(err.message || 'Request failed')
+      persistHistory(method, url, 'ERR')
     })
   }
 
