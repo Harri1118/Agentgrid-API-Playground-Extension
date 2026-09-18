@@ -18,8 +18,12 @@
     "agentgrid": ">=2.8.0"
   },
   "permissions": [
-    "ui:panel"
+    "ui:panel",
+    "network"
   ],
+  "networkAccess": {
+    "hosts": ["<all_urls>"]
+  },
   "activationEvents": [
     "*"
   ],
