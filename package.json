@@ -19,6 +19,7 @@
   },
   "permissions": [
     "ui:panel",
+    "agent:tools",
     "network"
   ],
   "networkAccess": {

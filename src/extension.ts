@@ -27,45 +27,37 @@ type ToolDescriptor = {
   inputSchema: Record<string, unknown>
 }
 
-type ActivityEntry = {
-  type: string
-  summary: string
-  detail?: unknown
-}
-
 type AgentGridApi = {
   commands: {
     registerCommand(id: string, handler: (...args: unknown[]) => unknown): Disposable
   }
-  net: {
+  net?: {
     fetch(options: FetchOptions): Promise<FetchResult>
   }
   settings: {
     get(key: string): unknown
     update(key: string, value: unknown): void
   }
-  toolHandlers: {
+  toolHandlers?: {
     registerToolHandler(
       tool: ToolDescriptor,
       handler: (input: Record<string, unknown>) => unknown,
     ): Disposable
   }
-  panes: {
+  panes?: {
     broadcast(paneType: string, event: unknown): void
   }
-  activity: {
-    push(entry: ActivityEntry): void
-    list(since?: number): ActivityEntry[]
+  activity?: {
+    push(entry: { type: string; summary: string; detail?: unknown }): void
+    list(since?: number): unknown[]
   }
 }
 
 type ExtensionContext = {
   subscriptions: Disposable[]
-  extensionPath: string
   extensionId: string
   globalState: Memento
   workspaceState: Memento
-  storagePath: string
   agentgrid: AgentGridApi
 }
 
@@ -105,9 +97,13 @@ export function activate(context: ExtensionContext): void {
         return { error: 'Missing URL' }
       }
 
+      if (!api.net) {
+        return { error: 'Network access not available' }
+      }
+
       const method = opts.method ?? 'GET'
 
-      api.activity.push({
+      api.activity?.push({
         type: 'request-sent',
         summary: `${method} ${opts.url}`,
         detail: { method, url: opts.url, headers: opts.headers },
@@ -121,13 +117,13 @@ export function activate(context: ExtensionContext): void {
           body: opts.body,
         })
 
-        api.activity.push({
+        api.activity?.push({
           type: 'response-received',
           summary: `${result.status} ${result.statusText} from ${opts.url}`,
           detail: { status: result.status, statusText: result.statusText, size: result.size },
         })
 
-        api.panes.broadcast('ext-api-playground', {
+        api.panes?.broadcast('ext-api-playground', {
           type: 'response',
           method,
           url: opts.url,
@@ -142,7 +138,7 @@ export function activate(context: ExtensionContext): void {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
 
-        api.activity.push({
+        api.activity?.push({
           type: 'request-error',
           summary: `Error: ${method} ${opts.url} — ${msg}`,
         })
@@ -227,99 +223,106 @@ export function activate(context: ExtensionContext): void {
     },
   )
 
-  const executeHttpRequest = async (input: Record<string, unknown>) => {
-    const opts: FetchOptions = {
-      method: (input.method as string) ?? 'GET',
-      url: input.url as string,
-      headers: input.headers as Record<string, string> | undefined,
-      body: input.body as string | undefined,
-    }
-
-    if (!opts.url) {
-      return { error: 'Missing URL' }
-    }
-
-    api.activity.push({
-      type: 'request-sent',
-      summary: `[agent] ${opts.method} ${opts.url}`,
-      detail: { method: opts.method, url: opts.url, headers: opts.headers },
-    })
-
-    try {
-      const result = await api.net.fetch(opts)
-
-      api.activity.push({
-        type: 'response-received',
-        summary: `[agent] ${result.status} ${result.statusText} from ${opts.url}`,
-        detail: { status: result.status, statusText: result.statusText, size: result.size },
-      })
-
-      api.panes.broadcast('ext-api-playground', {
-        type: 'response',
-        method: opts.method,
-        url: opts.url,
-        status: result.status,
-        statusText: result.statusText,
-        headers: result.headers,
-        body: result.body,
-        size: result.size,
-        source: 'agent',
-      })
-
-      return result
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-
-      api.activity.push({
-        type: 'request-error',
-        summary: `[agent] Error: ${opts.method} ${opts.url} — ${msg}`,
-      })
-
-      return { error: msg }
-    }
-  }
-
-  const httpRequestTool = api.toolHandlers.registerToolHandler(
-    {
-      name: 'httpRequest',
-      description: 'Send an HTTP request via the API Playground extension. Returns the response status, headers, and body.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          method: { type: 'string', description: 'HTTP method (GET, POST, PUT, DELETE, PATCH, etc.)', default: 'GET' },
-          url: { type: 'string', description: 'The request URL' },
-          headers: { type: 'object', description: 'Request headers as key-value pairs', additionalProperties: { type: 'string' } },
-          body: { type: 'string', description: 'Request body (for POST/PUT/PATCH)' },
-        },
-        required: ['url'],
-      },
-    },
-    executeHttpRequest as (input: Record<string, unknown>) => unknown,
-  )
-
-  const activityTool = api.toolHandlers.registerToolHandler(
-    {
-      name: 'getActivity',
-      description: 'Retrieve the recent API Playground activity log — shows requests sent and responses received by the user or agents.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          since: { type: 'number', description: 'Unix timestamp (ms) — only return entries after this time. Omit for all.' },
-        },
-      },
-    },
-    (input: Record<string, unknown>) => {
-      const since = typeof input.since === 'number' ? input.since : 0
-
-      return api.activity.list(since)
-    },
-  )
-
   context.subscriptions.push(
     httpRequestCmd, getCollectionsCmd, saveCollectionCmd,
     deleteCollectionCmd, getHistoryCmd, pushHistoryCmd,
-    httpRequestTool, activityTool,
   )
+
+  if (api.toolHandlers) {
+    const executeHttpRequest = async (input: Record<string, unknown>) => {
+      const opts: FetchOptions = {
+        method: (input.method as string) ?? 'GET',
+        url: input.url as string,
+        headers: input.headers as Record<string, string> | undefined,
+        body: input.body as string | undefined,
+      }
+
+      if (!opts.url) {
+        return { error: 'Missing URL' }
+      }
+
+      if (!api.net) {
+        return { error: 'Network access not available' }
+      }
+
+      api.activity?.push({
+        type: 'request-sent',
+        summary: `[agent] ${opts.method} ${opts.url}`,
+        detail: { method: opts.method, url: opts.url, headers: opts.headers },
+      })
+
+      try {
+        const result = await api.net.fetch(opts)
+
+        api.activity?.push({
+          type: 'response-received',
+          summary: `[agent] ${result.status} ${result.statusText} from ${opts.url}`,
+          detail: { status: result.status, statusText: result.statusText, size: result.size },
+        })
+
+        api.panes?.broadcast('ext-api-playground', {
+          type: 'response',
+          method: opts.method,
+          url: opts.url,
+          status: result.status,
+          statusText: result.statusText,
+          headers: result.headers,
+          body: result.body,
+          size: result.size,
+          source: 'agent',
+        })
+
+        return result
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+
+        api.activity?.push({
+          type: 'request-error',
+          summary: `[agent] Error: ${opts.method} ${opts.url} — ${msg}`,
+        })
+
+        return { error: msg }
+      }
+    }
+
+    const httpRequestTool = api.toolHandlers.registerToolHandler(
+      {
+        name: 'httpRequest',
+        description: 'Send an HTTP request via the API Playground extension. Returns the response status, headers, and body.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            method: { type: 'string', description: 'HTTP method (GET, POST, PUT, DELETE, PATCH, etc.)', default: 'GET' },
+            url: { type: 'string', description: 'The request URL' },
+            headers: { type: 'object', description: 'Request headers as key-value pairs', additionalProperties: { type: 'string' } },
+            body: { type: 'string', description: 'Request body (for POST/PUT/PATCH)' },
+          },
+          required: ['url'],
+        },
+      },
+      executeHttpRequest as (input: Record<string, unknown>) => unknown,
+    )
+
+    const activityTool = api.toolHandlers.registerToolHandler(
+      {
+        name: 'getActivity',
+        description: 'Retrieve the recent API Playground activity log — shows requests sent and responses received by the user or agents.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            since: { type: 'number', description: 'Unix timestamp (ms) — only return entries after this time. Omit for all.' },
+          },
+        },
+      },
+      (input: Record<string, unknown>) => {
+        const since = typeof input.since === 'number' ? input.since : 0
+
+        return api.activity?.list(since) ?? []
+      },
+    )
+
+    context.subscriptions.push(httpRequestTool, activityTool)
+  }
 
   console.log('[api-playground] extension activated')
 }
