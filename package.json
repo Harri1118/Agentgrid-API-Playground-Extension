@@ -22,6 +22,70 @@
     "agent:tools",
     "network"
   ],
+  "agentTools": [
+    {
+      "name": "set_request",
+      "description": "Set the current request in the API Playground (method, url, headers, params, body)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+          "url": { "type": "string" },
+          "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+          "params": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+          "bodyType": { "type": "string", "enum": ["none", "json", "text", "form"] },
+          "body": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "send_request",
+      "description": "Set and immediately send a request in the API Playground",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+          "url": { "type": "string" },
+          "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+          "params": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+          "bodyType": { "type": "string", "enum": ["none", "json", "text", "form"] },
+          "body": { "type": "string" }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "add_request",
+      "description": "Save a request to the API Playground collections",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "method": { "type": "string" },
+          "url": { "type": "string" },
+          "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+          "bodyType": { "type": "string" },
+          "body": { "type": "string" }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "get_collections",
+      "description": "Get all saved request collections from the API Playground",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_history",
+      "description": "Get the request history from the API Playground",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "clear_history",
+      "description": "Clear the request history in the API Playground",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ],
   "networkAccess": {
     "hosts": ["<all_urls>"]
   },

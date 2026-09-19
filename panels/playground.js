@@ -285,12 +285,7 @@
     if (history.length > 100) { history.pop() }
 
     renderHistory()
-
-    try {
-      bridge('executeCommand', ['api-playground.pushHistory', {
-        method: method, url: url, status: status, time: time || 0
-      }]).catch(function () {})
-    } catch (_) {}
+    saveState()
   }
 
   function renderHistory() {
@@ -368,6 +363,7 @@
   document.getElementById('clear-history-btn').addEventListener('click', function () {
     history = []
     renderHistory()
+    saveState()
   })
 
   /* ── Collections (persistent) ── */
@@ -548,15 +544,9 @@
         createdAt: Date.now()
       }
 
-      bridge('executeCommand', ['api-playground.saveCollection', entry]).then(function (result) {
-        if (result && result.collections) {
-          collections = result.collections
-        } else {
-          collections.unshift(entry)
-        }
-
-        renderCollections()
-      })
+      collections.unshift(entry)
+      renderCollections()
+      saveState()
 
       close()
     }
@@ -570,15 +560,9 @@
   }
 
   function deleteCollection(id) {
-    bridge('executeCommand', ['api-playground.deleteCollection', id]).then(function (result) {
-      if (result && result.collections) {
-        collections = result.collections
-      } else {
-        collections = collections.filter(function (c) { return c.id !== id })
-      }
-
-      renderCollections()
-    })
+    collections = collections.filter(function (c) { return c.id !== id })
+    renderCollections()
+    saveState()
   }
 
   function loadPersistedCollections() {
@@ -677,10 +661,169 @@
 
   document.addEventListener('mouseup', function () { isDragging = false })
 
+  /* ── Agent actions (onAgentAction API) ── */
+
+  function handleAgentAction(action, data) {
+    if (action === 'readState') {
+      return {
+        currentRequest: {
+          method: methodEl.value,
+          url: urlEl.value,
+          headers: headers.filter(function (h) { return h.key.trim() }),
+          bodyType: bodyType,
+          body: bodyContent.value,
+          params: params.filter(function (p) { return p.key.trim() }),
+        },
+        collections: collections,
+        history: history,
+      }
+    }
+
+    if (action === 'set_request') {
+      if (data.method) {
+        methodEl.value = data.method.toUpperCase()
+        methodEl.style.color = METHOD_COLORS[methodEl.value] || '#e0e0e0'
+      }
+
+      if (data.url) { urlEl.value = data.url }
+
+      if (data.headers && Array.isArray(data.headers)) {
+        headers = data.headers.map(function (h) { return { key: h.key || '', value: h.value || '' } })
+        renderKvEditor('headers-editor', headers)
+      }
+
+      if (data.params && Array.isArray(data.params)) {
+        params = data.params.map(function (p) { return { key: p.key || '', value: p.value || '' } })
+        renderKvEditor('params-editor', params)
+      }
+
+      if (data.bodyType) {
+        bodyType = data.bodyType
+        bodyContent.disabled = bodyType === 'none'
+
+        document.querySelectorAll('input[name="body-type"]').forEach(function (radio) {
+          radio.checked = radio.value === bodyType
+        })
+      }
+
+      if (data.body !== undefined) { bodyContent.value = data.body }
+
+      saveState()
+
+      return { ok: true }
+    }
+
+    if (action === 'send_request') {
+      if (data.method) {
+        methodEl.value = data.method.toUpperCase()
+        methodEl.style.color = METHOD_COLORS[methodEl.value] || '#e0e0e0'
+      }
+
+      if (data.url) { urlEl.value = data.url }
+
+      if (data.headers && Array.isArray(data.headers)) {
+        headers = data.headers.map(function (h) { return { key: h.key || '', value: h.value || '' } })
+        renderKvEditor('headers-editor', headers)
+      }
+
+      if (data.params && Array.isArray(data.params)) {
+        params = data.params.map(function (p) { return { key: p.key || '', value: p.value || '' } })
+        renderKvEditor('params-editor', params)
+      }
+
+      if (data.bodyType) {
+        bodyType = data.bodyType
+        bodyContent.disabled = bodyType === 'none'
+
+        document.querySelectorAll('input[name="body-type"]').forEach(function (radio) {
+          radio.checked = radio.value === bodyType
+        })
+      }
+
+      if (data.body !== undefined) { bodyContent.value = data.body }
+
+      sendRequest()
+
+      return { ok: true, sent: true }
+    }
+
+    if (action === 'add_request') {
+      var entry = {
+        id: 'req-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        name: data.name || (data.method || 'GET') + ' ' + (data.url || '/'),
+        method: (data.method || 'GET').toUpperCase(),
+        url: data.url || '',
+        headers: data.headers || [],
+        bodyType: data.bodyType || 'none',
+        body: data.body || '',
+        createdAt: Date.now()
+      }
+
+      collections.unshift(entry)
+      renderCollections()
+      saveState()
+
+      return { ok: true, id: entry.id }
+    }
+
+    if (action === 'get_collections') {
+      return collections
+    }
+
+    if (action === 'get_history') {
+      return history
+    }
+
+    if (action === 'clear_history') {
+      history = []
+      renderHistory()
+      saveState()
+
+      return { ok: true }
+    }
+
+    return { error: 'Unknown action: ' + action }
+  }
+
+  if (window.agentGridExtension && window.agentGridExtension.onAgentAction) {
+    window.agentGridExtension.onAgentAction(handleAgentAction)
+  }
+
+  /* ── Persistence (agentGridExtension API) ── */
+
+  function saveState() {
+    if (window.agentGridExtension && window.agentGridExtension.persistState) {
+      window.agentGridExtension.persistState({
+        collections: collections,
+        history: history,
+      })
+    }
+  }
+
+  function loadState() {
+    if (window.agentGridExtension && window.agentGridExtension.loadState) {
+      window.agentGridExtension.loadState().then(function (state) {
+        if (state && typeof state === 'object') {
+          if (Array.isArray(state.collections)) {
+            collections = state.collections
+            renderCollections()
+          }
+
+          if (Array.isArray(state.history)) {
+            history = state.history
+            renderHistory()
+          }
+        }
+      })
+    } else {
+      loadPersistedCollections()
+      loadPersistedHistory()
+    }
+  }
+
   /* ── Init: load persisted data ── */
 
-  loadPersistedCollections()
-  loadPersistedHistory()
+  loadState()
   renderCollections()
   renderHistory()
 })()
