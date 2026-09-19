@@ -3,8 +3,8 @@ import { build } from 'esbuild'
 await build({
   entryPoints: ['src/extension.ts'],
   bundle: true,
-  format: 'cjs',
-  platform: 'node',
+  format: 'esm',
+  platform: 'browser',
   outfile: 'dist/extension.js',
 })
 
