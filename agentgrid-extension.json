@@ -1,0 +1,94 @@
+{
+  "id": "agentgrid.agentgrid-api-playground",
+  "version": "1.0.0",
+  "publisher": "agentgrid",
+  "displayName": "API Playground",
+  "description": "Postman-like HTTP request builder as a canvas pane — compose requests, inspect responses, and manage environments.",
+  "main": "dist/extension.js",
+  "engines": {
+    "agentgrid": ">=2.8.0"
+  },
+  "activationEvents": ["*"],
+  "permissions": ["ui:panel", "agent:tools", "network"],
+  "networkAccess": {
+    "hosts": ["<all_urls>"]
+  },
+  "contributes": {
+    "ui": {
+      "paneTypes": [
+        {
+          "id": "api-playground",
+          "title": "API Playground",
+          "icon": "\ud83d\udd0c",
+          "iconSvg": "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg>",
+          "entrypoint": "panels/playground.html",
+          "defaultSize": { "width": 960, "height": 780 }
+        }
+      ],
+      "toolHandlers": [
+        {
+          "name": "set_request",
+          "description": "Set the current request in the API Playground (method, url, headers, params, body)",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+              "url": { "type": "string" },
+              "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+              "params": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+              "bodyType": { "type": "string", "enum": ["none", "json", "text", "form"] },
+              "body": { "type": "string" }
+            }
+          }
+        },
+        {
+          "name": "send_request",
+          "description": "Set and immediately send a request in the API Playground",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+              "url": { "type": "string" },
+              "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+              "params": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+              "bodyType": { "type": "string", "enum": ["none", "json", "text", "form"] },
+              "body": { "type": "string" }
+            },
+            "required": ["url"]
+          }
+        },
+        {
+          "name": "add_request",
+          "description": "Save a request to the API Playground collections",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "method": { "type": "string" },
+              "url": { "type": "string" },
+              "headers": { "type": "array", "items": { "type": "object", "properties": { "key": { "type": "string" }, "value": { "type": "string" } } } },
+              "bodyType": { "type": "string" },
+              "body": { "type": "string" }
+            },
+            "required": ["url"]
+          }
+        },
+        {
+          "name": "get_collections",
+          "description": "Get all saved request collections from the API Playground",
+          "inputSchema": { "type": "object", "properties": {} }
+        },
+        {
+          "name": "get_history",
+          "description": "Get the request history from the API Playground",
+          "inputSchema": { "type": "object", "properties": {} }
+        },
+        {
+          "name": "clear_history",
+          "description": "Clear the request history in the API Playground",
+          "inputSchema": { "type": "object", "properties": {} }
+        }
+      ]
+    }
+  }
+}
