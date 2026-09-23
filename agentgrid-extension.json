@@ -1,5 +1,5 @@
 {
-  "id": "agentgrid.agentgrid-api-playground",
+  "name": "agentgrid-api-playground",
   "version": "1.0.0",
   "publisher": "agentgrid",
   "displayName": "API Playground",

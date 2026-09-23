@@ -1,0 +1,23 @@
+name: Publish to AgentGrid Marketplace
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npx @agentgrid/cli publish --token "$AGX_TOKEN"
+        env:
+          AGX_TOKEN: ${{ secrets.AGX_TOKEN }}
